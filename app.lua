@@ -58,7 +58,7 @@ for data_path, href in pairs(hrefs) do
   responses[href].err = err
 end
 
--- go through the responses
+-- fill out responses
 for href, details in pairs(responses) do
   local res = details.res
   local err = details.err
@@ -93,6 +93,36 @@ for href, details in pairs(responses) do
   end
 end
 
-ngx.say(cjson.encode(responses))
+
+function string:split(sep)
+  local sep, fields = sep or ":", {}
+  local pattern = string.format("([^%s]+)", sep)
+  self:gsub(pattern, function(c) fields[#fields+1] = c end)
+  return fields
+end
+
+function table_len (T)
+  local count = 0
+  for k,v in pairs(T) do
+    count = count + 1
+  end
+  return count
+end
+
+-- go through our hrefs updating our body data
+for data_path, href in pairs(hrefs) do
+  response = responses[href]
+  to_update = body_data
+  pieces = string.split(data_path, "/")
+  num_pieces = table_len(pieces)
+  last_piece = pieces[num_pieces]
+  for i = 1, (num_pieces - 1) do
+    token = pieces[i]
+    to_update = to_update[token]
+  end
+  to_update[last_piece] = response
+end
+
+ngx.say(cjson.encode(body_data))
 
 ngx.exit(200)
