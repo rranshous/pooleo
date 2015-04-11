@@ -64,10 +64,9 @@ for href, details in pairs(responses) do
   local err = details.err
 
   if not res then
-    ngx.say("failed to request[", href, "]: ", err)
-    responses[href] = cjson.encode({ error=err })
-  else
+    responses[href] = {error=err}
 
+  else
     -- TODO, stream as available instead of starting from first req
     -- Now we can use the body_reader iterator, to stream the body
     -- according to our desired chunk size.
