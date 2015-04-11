@@ -1,27 +1,32 @@
 
 local cjson = require "cjson"
 local cjson2 = cjson.new()
-local cjson_safe = require "cjson.safe"
 
 local http = require "resty.http"
 local httpc = http.new()
 
+local url = require "net.url"
+
 -- get the json from the request body
-local body = ngx.req.get_body_data()
-ngx.log("BODY: ", body)
+local body = ngx.req.read_body()
+if not body then
+  ngx.log(ngx.DEBUG, "getting body from cache")
+  body = ngx.req.get_body_data()
+end
+ngx.log(ngx.INFO, "BODY: ", body)
+
 local body_data = cjson.decode(body)
 
 -- pull the href from the bodies data { "href" : "" }
 local href = body_data["href"]
-ngx.log("HREF: ", href)
+ngx.log(ngx.INFO, "HREF: ", href)
 
 -- parse our URL
--- local host = url:match("[%w%.]*%.(%w+%.%w+)")
 local href_details = url.parse(href)
-local host = href_details["host"]
-local path = href_details["path"]
-ngx.log("HOST: ", host)
-ngx.log("PATH: ", path)
+local host = href_details.host
+local path = href_details.path
+ngx.log(ngx.INFO, "HOST: ", host)
+ngx.log(ngx.INFO, "PATH: ", path)
 
 -- connect to the host
 httpc:set_timeout(500)
