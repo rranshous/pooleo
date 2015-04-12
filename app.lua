@@ -3,7 +3,7 @@ local cjson = require "cjson"
 local cjson2 = cjson.new()
 
 local http = require "resty.http"
-local httpc = http.new()
+-- local httpc = http.new()
 
 local url = require "net.url"
 
@@ -42,48 +42,56 @@ for data_path, href in pairs(hrefs) do
   local href_details = url.parse(href)
 
   -- connect to the host
-  -- httpc:set_timeout(5000)
-  -- httpc:connect(href_details["host"], 80)
+  local httpc = http.new()
+  httpc:set_timeout(5000)
+  ngx.log(ngx.ERR, "HOST: ",href_details.host)
+  httpc:connect(href_details.host, href_details.port)
   -- start our request
-  -- ngx.log(ngx.ERR, "OPENING: ", href_details["host"], '-', href_details["path"])
-  -- local res, err = httpc:request{
-  --   path = href_details["path"],
-  --   headers = {
-  --     ["Host"] = href_details["host"]
-  --   },
-  -- }
-
-  local res, err = httpc:request_uri(href, {
-    method = "GET",
+  local params = {
+    path = href_details.path,
     headers = {
-      ["Host"] = href_details["host"]
-    }
-  })
+      ["Host"] = href_details.host
+    },
+  }
+  local res, err = httpc:send_request(params)
 
   -- keep track of our responses
   responses[href] = {}
+  responses[href].httpc = httpc
   responses[href].res = res
   responses[href].err = err
+  responses[href].params = params
 end
 
 -- fill out responses
 for href, details in pairs(responses) do
   local res = details.res
   local err = details.err
+  local httpc = details.httpc
+  local params = details.params
 
   if not res then
     responses[href] = {error={message=err}}
-  elseif res.status ~= 200 then
-    responses[href] = {error={status=res.status,message="bad response"}}
 
   else
-    responses[href] = cjson.decode(res.body)
 
-    -- local ok, err = httpc:set_keepalive()
-    -- if not ok then
-    --   ngx.say("failed to set keepalive: ", err)
-    --   return
-    -- end
+    -- start reading the response
+    res = httpc:read_response(params)
+    if not res then
+      responses[href] = {error={message=err}}
+
+    elseif res.status ~= 200 then
+      responses[href] = {error={status=res.status,message="bad response"}}
+
+    else
+      responses[href] = cjson.decode(res:read_body())
+
+      -- local ok, err = httpc:set_keepalive()
+      -- if not ok then
+      --   ngx.say("failed to set keepalive: ", err)
+      --   return
+      -- end
+    end
   end
 end
 
