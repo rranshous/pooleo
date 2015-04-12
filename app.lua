@@ -42,16 +42,24 @@ for data_path, href in pairs(hrefs) do
   local href_details = url.parse(href)
 
   -- connect to the host
-  httpc:set_timeout(500)
-  httpc:connect(href_details["host"], 80)
-
+  -- httpc:set_timeout(5000)
+  -- httpc:connect(href_details["host"], 80)
   -- start our request
-  local res, err = httpc:request{
-    path = href_details["path"],
+  -- ngx.log(ngx.ERR, "OPENING: ", href_details["host"], '-', href_details["path"])
+  -- local res, err = httpc:request{
+  --   path = href_details["path"],
+  --   headers = {
+  --     ["Host"] = href_details["host"]
+  --   },
+  -- }
+
+  local res, err = httpc:request_uri(href, {
+    method = "GET",
     headers = {
       ["Host"] = href_details["host"]
-    },
-  }
+    }
+  })
+
   -- keep track of our responses
   responses[href] = {}
   responses[href].res = res
@@ -65,25 +73,11 @@ for href, details in pairs(responses) do
 
   if not res then
     responses[href] = {error=err}
+    -- responses[href] = "error"
 
   else
-    -- TODO, stream as available instead of starting from first req
-    -- Now we can use the body_reader iterator, to stream the body
-    -- according to our desired chunk size.
-    local reader = res.body_reader
 
-    responses[href] = ""
-    repeat
-      local chunk, err = reader(8192)
-      if err then
-        ngx.log(ngx.ERR, err)
-        break
-      end
-
-      if chunk then
-        responses[href] = responses[href] .. chunk
-      end
-    until not chunk
+    responses[href] = res.body
 
     -- local ok, err = httpc:set_keepalive()
     -- if not ok then
