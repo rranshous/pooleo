@@ -35,7 +35,7 @@ function href_find (tbl, path, found)
 end
 local hrefs = href_find(body_data, "/", nil)
 
--- connect to each href's server
+-- make http connections
 local responses = {}
 for data_path, href in pairs(hrefs) do
   -- parse our URL
