@@ -72,11 +72,11 @@ for href, details in pairs(responses) do
   local err = details.err
 
   if not res then
-    responses[href] = {error=err}
-    -- responses[href] = "error"
+    responses[href] = {error={message=err}}
+  elseif res.status ~= 200 then
+    responses[href] = {error={status=res.status,message="bad response"}}
 
   else
-
     responses[href] = res.body
 
     -- local ok, err = httpc:set_keepalive()
