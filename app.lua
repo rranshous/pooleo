@@ -45,7 +45,7 @@ for data_path, href in pairs(hrefs) do
   local httpc = http.new()
   httpc:set_timeout(5000)
   ngx.log(ngx.ERR, "HOST: ",href_details.host)
-  httpc:connect(href_details.host, href_details.port)
+  httpc:connect(href_details.host, href_details.port or 80)
   -- start our request
   local params = {
     path = href_details.path,
