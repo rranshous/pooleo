@@ -77,7 +77,7 @@ for href, details in pairs(responses) do
     responses[href] = {error={status=res.status,message="bad response"}}
 
   else
-    responses[href] = res.body
+    responses[href] = cjson.decode(res.body)
 
     -- local ok, err = httpc:set_keepalive()
     -- if not ok then
