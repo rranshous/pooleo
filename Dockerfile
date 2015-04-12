@@ -1,4 +1,4 @@
-FROM rranshous/openresty
+FROM rranshous/openresty-docker
 
 RUN mkdir -p /app/logs
 RUN ln -sf /dev/stdout /app/logs/access.log
