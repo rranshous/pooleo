@@ -74,7 +74,6 @@ for href, details in pairs(responses) do
     responses[href] = {error={message=err}}
 
   else
-
     -- start reading the response
     res = httpc:read_response(params)
     if not res then
@@ -85,12 +84,6 @@ for href, details in pairs(responses) do
 
     else
       responses[href] = cjson.decode(res:read_body())
-
-      -- local ok, err = httpc:set_keepalive()
-      -- if not ok then
-      --   ngx.say("failed to set keepalive: ", err)
-      --   return
-      -- end
     end
   end
 end
